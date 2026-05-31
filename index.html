@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Приглашение на свидание 💖</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Плавающие пузырьки -->
+    <div class="bubbles" id="bubblesContainer"></div>
+
+    <!-- Падающие смайлики -->
+    <div class="floating-emojis" id="floatingEmojis"></div>
+
+    <!-- Канвас для фейерверка -->
+    <canvas id="fireworksCanvas"></canvas>
+
+    <!-- Основной контейнер -->
+    <div class="container">
+        <!-- Экран 1: Приглашение -->
+        <div class="screen active" id="screen1">
+            <h1 id="mainTitle">Пойдёшь со мной на свидание?</h1>
+            <p>Я обещаю, будет классно! 😊</p>
+            <div class="buttons">
+                <button id="yesBtn">Да! 💞</button>
+                <div class="no-btn-wrapper">
+                    <button id="noBtn">Нет 🥺</button>
+                    <div class="thought-bubble">Может, всё-таки да?</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран 2: Выбор места -->
+        <div class="screen" id="screen2">
+            <h2>Куда пойдём?</h2>
+            <p>Выбери одно из мест или предложи своё:</p>
+            <div class="places" id="placesContainer">
+                <div class="place" data-place="Додо"><span>🍕</span> Додо</div>
+                <div class="place" data-place="Кофейня"><span>☕</span> Кофейня</div>
+                <div class="place" data-place="Парк"><span>🌳</span> Парк</div>
+                <div class="place" data-place="Набережная"><span>🌊</span> Набережная</div>
+                <div class="place custom-place-trigger" id="customPlaceTrigger"><span>✏️</span> Своё место</div>
+            </div>
+            <div class="custom-place-input" id="customPlaceInput" style="display: none;">
+                <input type="text" id="placeInput" placeholder="Введи любое место..." maxlength="40">
+                <button id="submitCustomPlace">Готово</button>
+                <button id="cancelCustomPlace" class="cancel-btn">Отмена</button>
+            </div>
+        </div>
+
+        <!-- Экран 3: Почему ты особенная -->
+        <div class="screen" id="screenSpecial">
+            <h2>Ты особенная, потому что...</h2>
+            <p id="specialReason"></p>
+            <button id="nextToDateBtn">Дальше 📅</button>
+        </div>
+
+        <!-- Экран 4: Выбор даты -->
+        <div class="screen" id="screen3">
+            <h2>А когда?</h2>
+            <div class="date-picker-container">
+                <input type="date" id="datePicker" min="" max="">
+                <button id="confirmDateBtn">Подтвердить дату 📅</button>
+            </div>
+        </div>
+
+        <!-- Экран 5: Финальное сообщение -->
+        <div class="screen" id="screen4">
+            <h2>Ура! 🎉</h2>
+            <p id="finalMessage"></p>
+            <p>До встречи! 💖</p>
+        </div>
+    </div>
+
+    <script>
+        // ⚙️ Настройки Telegram
+        const TELEGRAM_TOKEN = '8569302170:AAHWL2MS62yE_XHXSEtXbXMkLV5MgPttogI';
+        const TELEGRAM_CHAT_ID = '6656875164';
+
+        // --- Управление экранами ---
+        const screens = {
+            screen1: document.getElementById('screen1'),
+            screen2: document.getElementById('screen2'),
+            screenSpecial: document.getElementById('screenSpecial'),
+            screen3: document.getElementById('screen3'),
+            screen4: document.getElementById('screen4'),
+        };
+
+        function showScreen(id) {
+            const newScreen = screens[id];
+            const currentActive = document.querySelector('.screen.active');
+            if (currentActive === newScreen) return;
+            if (currentActive) currentActive.classList.remove('active');
+            newScreen.classList.add('active');
+            document.getElementById('floatingEmojis').style.display = (id === 'screen1') ? 'block' : 'none';
+            document.getElementById('bubblesContainer').style.display = (id === 'screen1' || id === 'screenSpecial') ? 'block' : 'none';
+        }
+
+        // --- Красивое модальное окно ---
+        function showCustomModal(text, isError = false) {
+            const existing = document.querySelector('.custom-modal');
+            if (existing) existing.remove();
+            const modal = document.createElement('div');
+            modal.className = 'custom-modal';
+            modal.innerHTML = `<div class="custom-modal-content ${isError ? 'error' : ''}"><span>${text}</span></div>`;
+            document.body.appendChild(modal);
+            requestAnimationFrame(() => modal.classList.add('show'));
+            setTimeout(() => {
+                modal.classList.remove('show');
+                modal.addEventListener('transitionend', () => modal.remove(), { once: true });
+                setTimeout(() => { if (modal.parentNode) modal.remove(); }, 500);
+            }, 2500);
+        }
+
+        // --- Отправка в Telegram ---
+        function sendToTelegram(message) {
+            const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) console.log('✅ Отправлено в Telegram');
+                else console.error('Ошибка Telegram:', data.description);
+            })
+            .catch(err => console.error('Сетевая ошибка:', err));
+        }
+
+        // --- Фейерверк (Canvas) ---
+        const fireworksCanvas = document.getElementById('fireworksCanvas');
+        const fwCtx = fireworksCanvas.getContext('2d');
+        let particles = [];
+        let fwAnimationId = null;
+
+        function resizeFireworksCanvas() {
+            fireworksCanvas.width = window.innerWidth;
+            fireworksCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeFireworksCanvas);
+        resizeFireworksCanvas();
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.radius = Math.random() * 3 + 2;
+                this.speedX = (Math.random() - 0.5) * 6;
+                this.speedY = (Math.random() - 0.5) * 6 - 2;
+                this.alpha = 1;
+                this.decay = 0.015 + Math.random() * 0.02;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.speedY += 0.05;
+                this.alpha -= this.decay;
+            }
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function launchFireworks() {
+            fireworksCanvas.style.display = 'block';
+            const colors = ['#ff4081','#ff80ab','#f48fb1','#e91e63','#ffb74d','#ffd54f'];
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const x = Math.random() * fireworksCanvas.width;
+                    const y = Math.random() * fireworksCanvas.height * 0.5;
+                    for (let j = 0; j < 50; j++) {
+                        particles.push(new Particle(x, y, colors[Math.floor(Math.random() * colors.length)]));
+                    }
+                }, i * 300);
+            }
+            if (fwAnimationId) cancelAnimationFrame(fwAnimationId);
+            animateFireworks();
+            setTimeout(() => {
+                fireworksCanvas.style.display = 'none';
+                if (fwAnimationId) cancelAnimationFrame(fwAnimationId);
+            }, 3000);
+        }
+
+        function animateFireworks() {
+            fwCtx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+            particles = particles.filter(p => p.alpha > 0);
+            particles.forEach(p => { p.update(); p.draw(fwCtx); });
+            if (particles.length > 0) {
+                fwAnimationId = requestAnimationFrame(animateFireworks);
+            }
+        }
+
+        // --- Логика выбора ---
+        let selectedPlace = '';
+        let selectedDate = '';
+
+        document.getElementById('yesBtn').addEventListener('click', () => {
+            launchFireworks();
+            showScreen('screen2');
+        });
+
+        // --- Убегающая кнопка "Нет" + дрожание + облачко мыслей ---
+        const noBtn = document.getElementById('noBtn');
+        const screen1 = document.getElementById('screen1');
+        const noBtnTexts = ['Нет 🥺','Точно нет?','Подумай ещё!','Не-а…','Ни за что!','Может да?','Ой, не туда'];
+        let noBtnCounter = 0;
+
+        noBtn.addEventListener('mouseover', () => {
+            screen1.style.animation = 'shake 0.3s ease';
+            setTimeout(() => screen1.style.animation = '', 300);
+
+            const cr = screen1.getBoundingClientRect();
+            const br = noBtn.getBoundingClientRect();
+            noBtn.style.position = 'absolute';
+            noBtn.style.left = Math.random() * (cr.width - br.width) + 'px';
+            noBtn.style.top = Math.random() * (cr.height - br.height) + 'px';
+            noBtn.textContent = noBtnTexts[Math.floor(Math.random() * noBtnTexts.length)];
+        });
+
+        noBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            noBtnCounter++;
+            if (noBtnCounter >= 3) {
+                showCustomModal('Ты очень настойчивая! Но я всё равно украду тебя на свидание 😄');
+                noBtnCounter = 0;
+                noBtn.style.position = 'relative';
+                noBtn.style.left = 'auto';
+                noBtn.style.top = 'auto';
+                noBtn.textContent = 'Нет 🥺';
+            } else {
+                showCustomModal('Нет-нет-нет! Попробуй ещё разок 😉');
+            }
+        });
+
+        const thoughtBubble = document.querySelector('.thought-bubble');
+        noBtn.addEventListener('mouseenter', () => { thoughtBubble.style.opacity = '1'; });
+        noBtn.addEventListener('mouseleave', () => { thoughtBubble.style.opacity = '0'; });
+
+        // --- Выбор места ---
+        const placesContainer = document.getElementById('placesContainer');
+        const customPlaceInput = document.getElementById('customPlaceInput');
+        const placeInput = document.getElementById('placeInput');
+
+        document.getElementById('submitCustomPlace').addEventListener('click', () => {
+            const val = placeInput.value.trim();
+            if (!val) return showCustomModal('Введи место!', true);
+            selectedPlace = val;
+            showSpecialScreen();
+        });
+        document.getElementById('cancelCustomPlace').addEventListener('click', () => {
+            placesContainer.style.display = '';
+            customPlaceInput.style.display = 'none';
+            placeInput.value = '';
+        });
+        document.getElementById('customPlaceTrigger').addEventListener('click', () => {
+            placesContainer.style.display = 'none';
+            customPlaceInput.style.display = 'flex';
+            placeInput.focus();
+        });
+        placesContainer.addEventListener('click', (e) => {
+            const card = e.target.closest('.place');
+            if (!card || card.id === 'customPlaceTrigger') return;
+            if (card.dataset.place) {
+                selectedPlace = card.dataset.place;
+                showSpecialScreen();
+            }
+        });
+
+        // --- Экран «Почему ты особенная» ---
+        const reasons = [
+            "с тобой даже дождь — это весело ☔",
+            "твои глаза сияют ярче звёзд ✨",
+            "ты делаешь мир светлее 🌟",
+            "у тебя самая красивая улыбка 💖",
+            "ты настоящая волшебница 🪄",
+            "ты вдохновляешь на подвиги 🦸",
+            "ты самая добрая и милая 🌷"
+        ];
+        let reasonIndex = 0;
+        let reasonInterval;
+
+        function startReasonCarousel() {
+            const el = document.getElementById('specialReason');
+            reasonIndex = Math.floor(Math.random() * reasons.length);
+            el.textContent = reasons[reasonIndex];
+            reasonInterval = setInterval(() => {
+                reasonIndex = (reasonIndex + 1) % reasons.length;
+                el.textContent = reasons[reasonIndex];
+            }, 2000);
+        }
+
+        function stopReasonCarousel() {
+            if (reasonInterval) clearInterval(reasonInterval);
+        }
+
+        function showSpecialScreen() {
+            showScreen('screenSpecial');
+            startReasonCarousel();
+            launchFireworks();
+        }
+
+        document.getElementById('nextToDateBtn').addEventListener('click', () => {
+            stopReasonCarousel();
+            showScreen('screen3');
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const maxDate = new Date();
+            maxDate.setFullYear(maxDate.getFullYear() + 1);
+            const picker = document.getElementById('datePicker');
+            picker.min = tomorrow.toISOString().split('T')[0];
+            picker.max = maxDate.toISOString().split('T')[0];
+            placesContainer.style.display = '';
+            customPlaceInput.style.display = 'none';
+            placeInput.value = '';
+        });
+
+        // --- Выбор даты и финал ---
+        document.getElementById('confirmDateBtn').addEventListener('click', () => {
+            const dateInput = document.getElementById('datePicker');
+            if (!dateInput.value) return showCustomModal('Выбери дату!', true);
+            selectedDate = dateInput.value;
+            const dateObj = new Date(selectedDate);
+            const formatted = dateObj.toLocaleDateString('ru-RU', { day:'numeric', month:'long', year:'numeric' });
+            const finalText = `${selectedPlace}, ${formatted} — договорились! 💕`;
+            document.getElementById('finalMessage').textContent = finalText;
+            showScreen('screen4');
+            launchFireworks();
+            sendToTelegram(finalText);
+        });
+
+        // --- Падающие смайлики ---
+        const floatingEmojisContainer = document.getElementById('floatingEmojis');
+        const emojiSet = ['😍','😘','🥰','😻','💖','💘','💝','💞','✨','🌸','💐','🌷'];
+        const funnyTexts = ["Ой!","В точку!","Люблю 💘","Милота!","Сдаюсь!","Ты чудо 💗","Не могу!","Щёчки горят 🥵","Магия ✨","Ура!"];
+
+        function createFallingEmoji() {
+            const emoji = document.createElement('div');
+            emoji.className = 'falling-emoji';
+            emoji.textContent = emojiSet[Math.floor(Math.random() * emojiSet.length)];
+            emoji.style.left = Math.random() * 100 + '%';
+            emoji.style.animationDuration = Math.random() * 4 + 5 + 's';
+            emoji.style.fontSize = Math.random() * 24 + 28 + 'px';
+
+            emoji.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (emoji.classList.contains('popped')) return;
+                const rect = emoji.getBoundingClientRect();
+                emoji.classList.add('popped');
+                const label = document.createElement('div');
+                label.className = 'emoji-label';
+                label.textContent = funnyTexts[Math.floor(Math.random() * funnyTexts.length)];
+                label.style.left = rect.left + rect.width/2 + 'px';
+                label.style.top = rect.top + rect.height/2 + 'px';
+                document.body.appendChild(label);
+                requestAnimationFrame(() => label.classList.add('show'));
+                setTimeout(() => {
+                    label.classList.remove('show');
+                    label.addEventListener('transitionend', () => label.remove(), { once: true });
+                    setTimeout(() => { if (label.parentNode) label.remove(); }, 600);
+                }, 2000);
+                emoji.addEventListener('animationend', () => { if (emoji.parentNode) emoji.remove(); }, { once: true });
+            });
+
+            floatingEmojisContainer.appendChild(emoji);
+            const duration = parseFloat(emoji.style.animationDuration) * 1000;
+            setTimeout(() => {
+                if (emoji.parentNode && !emoji.classList.contains('popped')) {
+                    emoji.style.transition = 'opacity 0.5s';
+                    emoji.style.opacity = '0';
+                    setTimeout(() => { if (emoji.parentNode) emoji.remove(); }, 500);
+                }
+            }, duration - 500);
+        }
+        setInterval(createFallingEmoji, 500);
+        for (let i = 0; i < 10; i++) setTimeout(createFallingEmoji, i * 200);
+
+        // --- Плавающие пузырьки ---
+        const bubblesContainer = document.getElementById('bubblesContainer');
+        function createBubble() {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.style.left = Math.random() * 100 + '%';
+            bubble.style.width = bubble.style.height = Math.random() * 40 + 20 + 'px';
+            bubble.style.animationDuration = Math.random() * 6 + 6 + 's';
+            bubble.style.animationDelay = Math.random() * 5 + 's';
+            bubblesContainer.appendChild(bubble);
+            bubble.addEventListener('animationend', () => bubble.remove());
+        }
+        for (let i = 0; i < 15; i++) createBubble();
+        setInterval(createBubble, 3000);
+
+        // --- Пасхалка: 5 кликов по заголовку ---
+        const mainTitle = document.getElementById('mainTitle');
+        let clickCount = 0;
+        let clickTimer;
+        mainTitle.addEventListener('click', () => {
+            clickCount++;
+            if (clickCount === 5) {
+                clickCount = 0;
+                showCustomModal('Ты самая крутая, и ты мне очень нравишься 💖');
+            }
+            clearTimeout(clickTimer);
+            clickTimer = setTimeout(() => { clickCount = 0; }, 1500);
+        });
+    </script>
+</body>
+</html>
