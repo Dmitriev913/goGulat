@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Приглашение на свидание 💖</title>
+    <title>Пойдём гулять? 🚶‍♂️🌿</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,69 +13,69 @@
     <!-- Падающие смайлики -->
     <div class="floating-emojis" id="floatingEmojis"></div>
 
-    <!-- Канвас для фейерверка -->
+    <!-- Канвас для праздничного салюта -->
     <canvas id="fireworksCanvas"></canvas>
 
     <!-- Основной контейнер -->
     <div class="container">
-        <!-- Экран 1: Приглашение -->
+        <!-- Экран 1: Приглашение на прогулку -->
         <div class="screen active" id="screen1">
-            <h1 id="mainTitle">Пойдёшь со мной на свидание?</h1>
-            <p>Я обещаю, будет классно! 😊</p>
+            <h1 id="mainTitle">Пойдём гулять? 🚶‍♀️</h1>
+            <p>Обещаю вкусный кофе, классную атмосферу и свежий воздух! ☕🌿</p>
             <div class="buttons">
-                <button id="yesBtn">Да! 💞</button>
+                <button id="yesBtn">Погнали! 👟</button>
                 <div class="no-btn-wrapper">
-                    <button id="noBtn">Нет 🥺</button>
-                    <div class="thought-bubble">Может, всё-таки да?</div>
+                    <button id="noBtn">Не хочу 🥺</button>
+                    <div class="thought-bubble">Может, всё-таки прогуляемся?</div>
                 </div>
             </div>
         </div>
 
-        <!-- Экран 2: Выбор места -->
+        <!-- Экран 2: Выбор маршрута / места -->
         <div class="screen" id="screen2">
             <h2>Куда пойдём?</h2>
-            <p>Выбери одно из мест или предложи своё:</p>
+            <p>Выбери локацию или предложи свой маршрут:</p>
             <div class="places" id="placesContainer">
-                <div class="place" data-place="Додо"><span>🍕</span> Додо</div>
-                <div class="place" data-place="Кофейня"><span>☕</span> Кофейня</div>
                 <div class="place" data-place="Парк"><span>🌳</span> Парк</div>
                 <div class="place" data-place="Набережная"><span>🌊</span> Набережная</div>
-                <div class="place custom-place-trigger" id="customPlaceTrigger"><span>✏️</span> Своё место</div>
+                <div class="place" data-place="Центр города"><span>🏙️</span> Улочки центра</div>
+                <div class="place" data-place="Кофейня и прогулка"><span>☕</span> За кофе и бродить</div>
+                <div class="place custom-place-trigger" id="customPlaceTrigger"><span>✏️</span> Свой маршрут</div>
             </div>
             <div class="custom-place-input" id="customPlaceInput" style="display: none;">
-                <input type="text" id="placeInput" placeholder="Введи любое место..." maxlength="40">
+                <input type="text" id="placeInput" placeholder="Напиши куда сходим..." maxlength="40">
                 <button id="submitCustomPlace">Готово</button>
                 <button id="cancelCustomPlace" class="cancel-btn">Отмена</button>
             </div>
         </div>
 
-        <!-- Экран 3: Почему ты особенная -->
+        <!-- Экран 3: Почему прогулка — отличная идея -->
         <div class="screen" id="screenSpecial">
-            <h2>Ты особенная, потому что...</h2>
+            <h2>С тобой классно гулять, потому что...</h2>
             <p id="specialReason"></p>
-            <button id="nextToDateBtn">Дальше 📅</button>
+            <button id="nextToDateBtn">Выбрать время 📅</button>
         </div>
 
         <!-- Экран 4: Выбор даты -->
         <div class="screen" id="screen3">
-            <h2>А когда?</h2>
+            <h2>А когда пойдём?</h2>
             <div class="date-picker-container">
                 <input type="date" id="datePicker" min="" max="">
                 <button id="confirmDateBtn">Подтвердить дату 📅</button>
             </div>
         </div>
 
-        <!-- Экран 5: Финальное сообщение -->
+        <!-- Экран 5: Финальное подтверждение -->
         <div class="screen" id="screen4">
-            <h2>Ура! 🎉</h2>
+            <h2>Ура, договорились! 🎉</h2>
             <p id="finalMessage"></p>
-            <p>До встречи! 💖</p>
+            <p>Одевайся поудобнее, до встречи! ☕👟</p>
         </div>
     </div>
 
     <script>
         // ⚙️ Настройки Telegram
-        const TELEGRAM_TOKEN = '8569302170:AAHWL2MS62yE_XHXSEtXbXMkLV5MgPttogI';
+        const TELEGRAM_TOKEN = '8867183850:AAF1nQjP1cX-tvp5RxtBNYiOopsuel-NtRQ';
         const TELEGRAM_CHAT_ID = '6656875164';
 
         // --- Управление экранами ---
@@ -97,7 +97,7 @@
             document.getElementById('bubblesContainer').style.display = (id === 'screen1' || id === 'screenSpecial') ? 'block' : 'none';
         }
 
-        // --- Красивое модальное окно ---
+        // --- Всплывающее модальное уведомление ---
         function showCustomModal(text, isError = false) {
             const existing = document.querySelector('.custom-modal');
             if (existing) existing.remove();
@@ -113,7 +113,7 @@
             }, 2500);
         }
 
-        // --- Отправка в Telegram ---
+        // --- Отправка данных в Telegram ---
         function sendToTelegram(message) {
             const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
             fetch(url, {
@@ -129,7 +129,7 @@
             .catch(err => console.error('Сетевая ошибка:', err));
         }
 
-        // --- Фейерверк (Canvas) ---
+        // --- Праздничный салют / конфетти (Canvas) ---
         const fireworksCanvas = document.getElementById('fireworksCanvas');
         const fwCtx = fireworksCanvas.getContext('2d');
         let particles = [];
@@ -172,7 +172,7 @@
 
         function launchFireworks() {
             fireworksCanvas.style.display = 'block';
-            const colors = ['#ff4081','#ff80ab','#f48fb1','#e91e63','#ffb74d','#ffd54f'];
+            const colors = ['#10b981', '#34d399', '#059669', '#f59e0b', '#3b82f6', '#ec4899', '#84cc16'];
             for (let i = 0; i < 5; i++) {
                 setTimeout(() => {
                     const x = Math.random() * fireworksCanvas.width;
@@ -199,7 +199,7 @@
             }
         }
 
-        // --- Логика выбора ---
+        // --- Состояние выбора ---
         let selectedPlace = '';
         let selectedDate = '';
 
@@ -208,36 +208,51 @@
             showScreen('screen2');
         });
 
-        // --- Убегающая кнопка "Нет" + дрожание + облачко мыслей ---
+        // --- Убегающая кнопка "Не хочу" ---
         const noBtn = document.getElementById('noBtn');
         const screen1 = document.getElementById('screen1');
-        const noBtnTexts = ['Нет 🥺','Точно нет?','Подумай ещё!','Не-а…','Ни за что!','Может да?','Ой, не туда'];
+        const noBtnTexts = [
+            'Не хочу 🥺',
+            'Точно дома?',
+            'Там погода супер! ☀️',
+            'А если с кофе? ☕',
+            'Подумай ещё!',
+            'Ну погнали!',
+            'Ой, мимо 😜'
+        ];
         let noBtnCounter = 0;
 
-        noBtn.addEventListener('mouseover', () => {
+        function dodgeNoButton(e) {
+            if (e && e.type === 'touchstart') e.preventDefault();
             screen1.style.animation = 'shake 0.3s ease';
             setTimeout(() => screen1.style.animation = '', 300);
 
             const cr = screen1.getBoundingClientRect();
             const br = noBtn.getBoundingClientRect();
             noBtn.style.position = 'absolute';
-            noBtn.style.left = Math.random() * (cr.width - br.width) + 'px';
-            noBtn.style.top = Math.random() * (cr.height - br.height) + 'px';
+
+            const maxLeft = Math.max(10, cr.width - br.width - 25);
+            const maxTop = Math.max(10, cr.height - br.height - 25);
+            noBtn.style.left = (Math.random() * maxLeft + 10) + 'px';
+            noBtn.style.top = (Math.random() * maxTop + 10) + 'px';
             noBtn.textContent = noBtnTexts[Math.floor(Math.random() * noBtnTexts.length)];
-        });
+        }
+
+        noBtn.addEventListener('mouseover', dodgeNoButton);
+        noBtn.addEventListener('touchstart', dodgeNoButton, { passive: false });
 
         noBtn.addEventListener('click', (e) => {
             e.preventDefault();
             noBtnCounter++;
             if (noBtnCounter >= 3) {
-                showCustomModal('Ты очень настойчивая! Но я всё равно украду тебя на свидание 😄');
+                showCustomModal('Ты очень настойчивая! Но мы всё равно пойдём гулять 😄');
                 noBtnCounter = 0;
                 noBtn.style.position = 'relative';
                 noBtn.style.left = 'auto';
                 noBtn.style.top = 'auto';
-                noBtn.textContent = 'Нет 🥺';
+                noBtn.textContent = 'Не хочу 🥺';
             } else {
-                showCustomModal('Нет-нет-нет! Попробуй ещё разок 😉');
+                showCustomModal('Дома скучно сидеть! Попробуй ещё разок 😉');
             }
         });
 
@@ -245,14 +260,14 @@
         noBtn.addEventListener('mouseenter', () => { thoughtBubble.style.opacity = '1'; });
         noBtn.addEventListener('mouseleave', () => { thoughtBubble.style.opacity = '0'; });
 
-        // --- Выбор места ---
+        // --- Выбор локации ---
         const placesContainer = document.getElementById('placesContainer');
         const customPlaceInput = document.getElementById('customPlaceInput');
         const placeInput = document.getElementById('placeInput');
 
         document.getElementById('submitCustomPlace').addEventListener('click', () => {
             const val = placeInput.value.trim();
-            if (!val) return showCustomModal('Введи место!', true);
+            if (!val) return showCustomModal('Введи место или маршрут!', true);
             selectedPlace = val;
             showSpecialScreen();
         });
@@ -275,15 +290,15 @@
             }
         });
 
-        // --- Экран «Почему ты особенная» ---
+        // --- Экран «С тобой классно гулять» ---
         const reasons = [
-            "с тобой даже дождь — это весело ☔",
-            "твои глаза сияют ярче звёзд ✨",
-            "ты делаешь мир светлее 🌟",
-            "у тебя самая красивая улыбка 💖",
-            "ты настоящая волшебница 🪄",
-            "ты вдохновляешь на подвиги 🦸",
-            "ты самая добрая и милая 🌷"
+            "с тобой всегда есть о чём поговорить и посмеяться ✨",
+            "можно взять вкусный кофе или чай и просто бродить ☕",
+            "свежий воздух и классная музыка делают день идеальным 🍃",
+            "любой маршрут с тобой превращается в мини-приключение 🗺️",
+            "ты заряжаешь отличным настроением и позитивом 🌟",
+            "с тобой уютно даже просто молчать и смотреть по сторонам 🏙️",
+            "это лучший повод оторваться от экранов и размяться 👟"
         ];
         let reasonIndex = 0;
         let reasonInterval;
@@ -295,7 +310,7 @@
             reasonInterval = setInterval(() => {
                 reasonIndex = (reasonIndex + 1) % reasons.length;
                 el.textContent = reasons[reasonIndex];
-            }, 2000);
+            }, 2300);
         }
 
         function stopReasonCarousel() {
@@ -311,36 +326,53 @@
         document.getElementById('nextToDateBtn').addEventListener('click', () => {
             stopReasonCarousel();
             showScreen('screen3');
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const today = new Date();
             const maxDate = new Date();
             maxDate.setFullYear(maxDate.getFullYear() + 1);
+
             const picker = document.getElementById('datePicker');
-            picker.min = tomorrow.toISOString().split('T')[0];
+            picker.min = today.toISOString().split('T')[0];
             picker.max = maxDate.toISOString().split('T')[0];
+            picker.value = today.toISOString().split('T')[0];
+
             placesContainer.style.display = '';
             customPlaceInput.style.display = 'none';
             placeInput.value = '';
         });
 
-        // --- Выбор даты и финал ---
+        // --- Подтверждение даты и отправка в TG ---
         document.getElementById('confirmDateBtn').addEventListener('click', () => {
             const dateInput = document.getElementById('datePicker');
             if (!dateInput.value) return showCustomModal('Выбери дату!', true);
             selectedDate = dateInput.value;
-            const dateObj = new Date(selectedDate);
+
+            const [year, month, day] = selectedDate.split('-').map(Number);
+            const dateObj = new Date(year, month - 1, day);
             const formatted = dateObj.toLocaleDateString('ru-RU', { day:'numeric', month:'long', year:'numeric' });
-            const finalText = `${selectedPlace}, ${formatted} — договорились! 💕`;
+
+            const finalText = `${selectedPlace}, ${formatted} — решено, идём гулять! 👟🌿`;
             document.getElementById('finalMessage').textContent = finalText;
             showScreen('screen4');
             launchFireworks();
-            sendToTelegram(finalText);
+
+            const tgMessage = `🚶 Согласие на прогулку!\n📍 Локация: ${selectedPlace}\n📅 Дата: ${formatted}\n✨ Одеваемся удобно и идём гулять!`;
+            sendToTelegram(tgMessage);
         });
 
-        // --- Падающие смайлики ---
+        // --- Падающие смайлики (прогулка / кофе / вайб) ---
         const floatingEmojisContainer = document.getElementById('floatingEmojis');
-        const emojiSet = ['😍','😘','🥰','😻','💖','💘','💝','💞','✨','🌸','💐','🌷'];
-        const funnyTexts = ["Ой!","В точку!","Люблю 💘","Милота!","Сдаюсь!","Ты чудо 💗","Не могу!","Щёчки горят 🥵","Магия ✨","Ура!"];
+        const emojiSet = ['🚶','👟','☕','🌿','✨','🍃','🌞','🍂','🥨','🥐','🧋','🎧','🌤️'];
+        const funnyTexts = [
+            "Погнали! 🚶",
+            "Берём кофе! ☕",
+            "Погодка кайф! ☀️",
+            "Красота ✨",
+            "В точку! 🎯",
+            "Уютно 🌿",
+            "Развеемся! 👟",
+            "Супер! 🙌"
+        ];
 
         function createFallingEmoji() {
             const emoji = document.createElement('div');
@@ -348,7 +380,7 @@
             emoji.textContent = emojiSet[Math.floor(Math.random() * emojiSet.length)];
             emoji.style.left = Math.random() * 100 + '%';
             emoji.style.animationDuration = Math.random() * 4 + 5 + 's';
-            emoji.style.fontSize = Math.random() * 24 + 28 + 'px';
+            emoji.style.fontSize = Math.random() * 20 + 26 + 'px';
 
             emoji.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -380,22 +412,22 @@
                 }
             }, duration - 500);
         }
-        setInterval(createFallingEmoji, 500);
-        for (let i = 0; i < 10; i++) setTimeout(createFallingEmoji, i * 200);
+        setInterval(createFallingEmoji, 600);
+        for (let i = 0; i < 8; i++) setTimeout(createFallingEmoji, i * 250);
 
-        // --- Плавающие пузырьки ---
+        // --- Плавающие пузырьки / частицы воздуха ---
         const bubblesContainer = document.getElementById('bubblesContainer');
         function createBubble() {
             const bubble = document.createElement('div');
             bubble.className = 'bubble';
             bubble.style.left = Math.random() * 100 + '%';
-            bubble.style.width = bubble.style.height = Math.random() * 40 + 20 + 'px';
+            bubble.style.width = bubble.style.height = Math.random() * 35 + 15 + 'px';
             bubble.style.animationDuration = Math.random() * 6 + 6 + 's';
             bubble.style.animationDelay = Math.random() * 5 + 's';
             bubblesContainer.appendChild(bubble);
             bubble.addEventListener('animationend', () => bubble.remove());
         }
-        for (let i = 0; i < 15; i++) createBubble();
+        for (let i = 0; i < 12; i++) createBubble();
         setInterval(createBubble, 3000);
 
         // --- Пасхалка: 5 кликов по заголовку ---
@@ -406,7 +438,7 @@
             clickCount++;
             if (clickCount === 5) {
                 clickCount = 0;
-                showCustomModal('Ты самая крутая, и ты мне очень нравишься 💖');
+                showCustomModal('С тобой всегда очень приятно и легко гулять! 🌿👟');
             }
             clearTimeout(clickTimer);
             clickTimer = setTimeout(() => { clickCount = 0; }, 1500);
